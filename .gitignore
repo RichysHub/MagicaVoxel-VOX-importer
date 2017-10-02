@@ -1,0 +1,12 @@
+# Byte-compiled
+__pycache__/
+
+# IPython Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Pycharm
+.idea/
+
+# Vox
+*.vox
