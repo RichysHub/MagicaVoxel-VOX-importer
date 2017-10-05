@@ -138,10 +138,26 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
         end = min([end_voxel, len(voxels)])
         voxels = voxels[start_voxel:end]
 
+    # peel first voxel information
+    voxel, *voxels = voxels
+    location = [float(coord) * voxel_spacing for coord in voxel[:3]]
+    # Using primitive_cube_add once here, to give us a template cube
+    bpy.ops.mesh.primitive_cube_add(radius=0.5 * voxel_size, location=location)
+    base_voxel = bpy.context.object
+
+    to_link = []
+
     for voxel in voxels:
-        location = [float(coord)*voxel_spacing for coord in voxel[:3]]
-        bpy.ops.mesh.primitive_cube_add(radius=0.5*voxel_size, location=location)
+        copy = base_voxel.copy()
+        copy.data = base_voxel.data.copy()
+        copy.location = [float(coord)*voxel_spacing for coord in voxel[:3]]
+        to_link.append(copy)
         # Todo: add material support here
+
+    for object in to_link:
+        bpy.context.scene.objects.link(object)
+
+    bpy.context.scene.update()
 
     print('\nSuccessfully imported {} in {:.3f} sec'.format(path, time.time() - time_start))
     return {'FINISHED'}
