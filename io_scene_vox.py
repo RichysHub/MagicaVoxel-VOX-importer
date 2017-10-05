@@ -5,10 +5,12 @@ Usage:
 Run this script from "File->Import" menu and then load the desired VOX file.
 """
 
+# <pep8 compliant>
+
 import os
 
 import bpy
-from bpy.props import StringProperty, IntProperty, CollectionProperty
+from bpy.props import StringProperty, IntProperty, FloatProperty, BoolProperty, CollectionProperty
 from bpy_extras.io_utils import ImportHelper
 
 import struct
@@ -23,7 +25,6 @@ bl_info = {
     "wiki_url": "",
     "support": 'TESTING',
     "category": "Import-Export"}
-
 
 class ImportVOX(bpy.types.Operator, ImportHelper):
     """Load a MagicaVoxel VOX File"""
@@ -44,11 +45,13 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
             options={'HIDDEN'},
             )
 
-    start_voxel = IntProperty(name='Start Voxel', default=1, min=1)
-    end_voxel = IntProperty(name='End Voxel', default=2, min=2)
+    voxel_spacing = FloatProperty(name="Voxel Spacing", default=1.0)
+    voxel_size = FloatProperty(name="Voxel Size", default=1.0)
 
-    # TODO: float property for scale
-    # TODO: float property for voxel size
+    use_bounds = BoolProperty(name="Use Voxel Bounds", default=False)
+
+    start_voxel = IntProperty(name="Start Voxel", default=1, min=1)
+    end_voxel = IntProperty(name="End Voxel", default=20, min=2)
 
     def execute(self, context):
         paths = [os.path.join(self.directory, name.name)
@@ -56,19 +59,24 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
         if not paths:
             paths.append(self.filepath)
 
+        keywords = self.as_keywords(ignore=("files", "filepath", "directory", "filter_glob",))
+
         for path in paths:
-            import_vox(path, (self.start_voxel, self.end_voxel))
-        print('HEY CAN YOU SEE ME?')
+            import_vox(path, **keywords)
         return {'FINISHED'}
 
-    # def draw(self, context):
-    #     layout = self.layout
-    #     # TODO: options need to be drawn in here
-    #     pass
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "voxel_spacing")
+        layout.prop(self, "voxel_size")
+        layout.prop(self, "use_bounds")
+        if self.use_bounds:
+            layout.prop(self, "start_voxel")
+            layout.prop(self, "end_voxel")
 
 
-def import_vox(path, bounds):
-    start_voxel, end_voxel = bounds
+def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_voxel=None, end_voxel=None):
+
     with open(path, 'rb') as vox:
 
         voxels = []
@@ -102,15 +110,13 @@ def import_vox(path, bounds):
                 vox.read(12)
             elif name == 'XYZI':
                 # voxel data
-                # this is the real juicy bit
                 num_voxels, = struct.unpack('<i', vox.read(4))
                 for voxel in range(num_voxels):
                     voxels.append(struct.unpack('<4B', vox.read(4)))
             elif name == 'RGBA':
                 # pallette
                 for col in range(256):
-                    # palette.update({col+1: struct.unpack('<4B', vox.read(4))})
-                    vox.read(4)
+                    palette.update({col+1: struct.unpack('<4B', vox.read(4))})
             elif name == 'MATT':
                 # material
                 matt_id, mat_type, weight = struct.unpack('<iif', vox.read(12))
@@ -118,16 +124,22 @@ def import_vox(path, bounds):
                 prop_bits, = struct.unpack('<i', vox.read(4))
                 binary = bin(prop_bits)
                 # Need to read property values, but this gets fiddly
+                # TODO: finish implementation
             else:
                 # Any other chunk, we don't know how to handle
                 # This puts us out-of-step
                 print('Unknown Chunk id {}'.format(name))
+                return {'CANCELLED'}
 
-    end_voxel = min([end_voxel, len(voxels)])
+    if use_bounds:
+        # clamp end_voxel to size of model
+        end = min([end_voxel, len(voxels)])
+        voxels = voxels[start_voxel:end]
 
-    for voxel in voxels[start_voxel:end_voxel]:
-        location = [float(coord) for coord in voxel[:3]]
-        bpy.ops.mesh.primitive_cube_add(radius=0.5, location=location)
+    for voxel in voxels:
+        location = [float(coord)*voxel_spacing for coord in voxel[:3]]
+        bpy.ops.mesh.primitive_cube_add(radius=0.5*voxel_size, location=location)
+        # Todo: add material support here
 
     return {'FINISHED'}
 
