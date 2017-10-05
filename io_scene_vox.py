@@ -76,6 +76,8 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
 
 
 def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_voxel=None, end_voxel=None):
+    import time
+    time_start = time.time()
 
     with open(path, 'rb') as vox:
 
@@ -141,6 +143,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
         bpy.ops.mesh.primitive_cube_add(radius=0.5*voxel_size, location=location)
         # Todo: add material support here
 
+    print('\nSuccessfully imported {} in {:.3f} sec'.format(path, time.time() - time_start))
     return {'FINISHED'}
 
 def menu_func_import(self, context):
