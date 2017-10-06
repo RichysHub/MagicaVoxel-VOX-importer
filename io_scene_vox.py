@@ -53,6 +53,8 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
     start_voxel = IntProperty(name="Start Voxel", default=1, min=1)
     end_voxel = IntProperty(name="End Voxel", default=20, min=2)
 
+    use_palette = BoolProperty(name="Use Palette Colors", default=True)
+
     def execute(self, context):
         paths = [os.path.join(self.directory, name.name)
                  for name in self.files]
@@ -73,9 +75,12 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
         if self.use_bounds:
             layout.prop(self, "start_voxel")
             layout.prop(self, "end_voxel")
+        layout.prop(self, "use_palette")
 
 
-def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_voxel=None, end_voxel=None):
+def import_vox(path, *, voxel_spacing=1, voxel_size=1,
+               use_bounds=False, start_voxel=None, end_voxel=None,
+               use_palette=True):
     import time
     time_start = time.time()
 
@@ -138,20 +143,21 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
         end = min([end_voxel, len(voxels)])
         voxels = voxels[start_voxel:end]
 
-    used_palette_indices = set()
-    for voxel in voxels:
-        # This is done here, so to avoid adding materials for voxels not in bounds
-        used_palette_indices.add(voxel[3])  # record the pallette entry is used
+    if use_palette:
+        used_palette_indices = set()
+        for voxel in voxels:
+            # This is done here, so to avoid adding materials for voxels not in bounds
+            used_palette_indices.add(voxel[3])  # record the pallette entry is used
 
-    mat_palette = {}
+        mat_palette = {}
 
-    for index in used_palette_indices:
-        palette_entry = palette[index]
-        material = bpy.data.materials.new("Voxel_mat{}".format(index))
-        material.diffuse_color = [col/255 for col in palette_entry[:3]]
-        material.diffuse_intensity = 1.0
-        material.alpha = palette_entry[3]
-        mat_palette.update({index: material})
+        for index in used_palette_indices:
+            palette_entry = palette[index]
+            material = bpy.data.materials.new("Voxel_mat{}".format(index))
+            material.diffuse_color = [col/255 for col in palette_entry[:3]]
+            material.diffuse_intensity = 1.0
+            material.alpha = palette_entry[3]
+            mat_palette.update({index: material})
 
     # peel first voxel information
     voxel, *voxels = voxels
@@ -159,7 +165,8 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
     # Using primitive_cube_add once here, to give us a template cube
     bpy.ops.mesh.primitive_cube_add(radius=0.5 * voxel_size, location=location)
     base_voxel = bpy.context.object
-    base_voxel.active_material = mat_palette[voxel[3]]
+    if use_palette:
+        base_voxel.active_material = mat_palette[voxel[3]]
 
     to_link = []
 
@@ -168,7 +175,8 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
         copy.data = base_voxel.data.copy()
         copy.location = [float(coord)*voxel_spacing for coord in voxel[:3]]
         to_link.append(copy)
-        copy.active_material = mat_palette[voxel[3]]
+        if use_palette:
+            copy.active_material = mat_palette[voxel[3]]
 
     for object_ in to_link:
         bpy.context.scene.objects.link(object_)
