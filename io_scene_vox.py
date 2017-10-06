@@ -26,6 +26,7 @@ bl_info = {
     "support": 'TESTING',
     "category": "Import-Export"}
 
+
 class ImportVOX(bpy.types.Operator, ImportHelper):
     """Load a MagicaVoxel VOX File"""
     bl_idname = "import_scene.vox"
@@ -33,9 +34,8 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
     bl_options = {'PRESET', 'UNDO'}
 
     files = CollectionProperty(name="File Path",
-                          description="File path used for importing "
-                                      "the VOX file",
-                          type=bpy.types.OperatorFileListElement)
+                               description="File path used for importing the VOX file",
+                               type=bpy.types.OperatorFileListElement)
 
     directory = StringProperty()
 
@@ -99,13 +99,12 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
                 *name, s_self, s_child = struct.unpack('<4cii', vox.read(12))
                 assert (s_child == 0)  # sanity check
                 name = b''.join(name).decode('utf-8')  # unsure of encoding..
-            except struct.error as e:
+            except struct.error:
                 # end of file
                 break
             if name == 'PACK':
                 # number of models
-                #num_models = struct.unpack('<i', vox.read(4))
-                vox.read(4)
+                num_models = struct.unpack('<i', vox.read(4))
             elif name == 'SIZE':
                 # model size
                 # x, y, z = struct.unpack('<3i', vox.read(12))
@@ -114,9 +113,10 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
                 # voxel data
                 num_voxels, = struct.unpack('<i', vox.read(4))
                 for voxel in range(num_voxels):
-                    voxels.append(struct.unpack('<4B', vox.read(4)))
+                    voxel_data = struct.unpack('<4B', vox.read(4))
+                    voxels.append(voxel_data)
             elif name == 'RGBA':
-                # pallette
+                # palette
                 for col in range(256):
                     palette.update({col+1: struct.unpack('<4B', vox.read(4))})
             elif name == 'MATT':
@@ -138,12 +138,28 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
         end = min([end_voxel, len(voxels)])
         voxels = voxels[start_voxel:end]
 
+    used_palette_indices = set()
+    for voxel in voxels:
+        # This is done here, so to avoid adding materials for voxels not in bounds
+        used_palette_indices.add(voxel[3])  # record the pallette entry is used
+
+    mat_palette = {}
+
+    for index in used_palette_indices:
+        palette_entry = palette[index]
+        material = bpy.data.materials.new("Voxel_mat{}".format(index))
+        material.diffuse_color = [col/255 for col in palette_entry[:3]]
+        material.diffuse_intensity = 1.0
+        material.alpha = palette_entry[3]
+        mat_palette.update({index: material})
+
     # peel first voxel information
     voxel, *voxels = voxels
     location = [float(coord) * voxel_spacing for coord in voxel[:3]]
     # Using primitive_cube_add once here, to give us a template cube
     bpy.ops.mesh.primitive_cube_add(radius=0.5 * voxel_size, location=location)
     base_voxel = bpy.context.object
+    base_voxel.active_material = mat_palette[voxel[3]]
 
     to_link = []
 
@@ -152,15 +168,16 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, use_bounds=False, start_v
         copy.data = base_voxel.data.copy()
         copy.location = [float(coord)*voxel_spacing for coord in voxel[:3]]
         to_link.append(copy)
-        # Todo: add material support here
+        copy.active_material = mat_palette[voxel[3]]
 
-    for object in to_link:
-        bpy.context.scene.objects.link(object)
+    for object_ in to_link:
+        bpy.context.scene.objects.link(object_)
 
     bpy.context.scene.update()
 
     print('\nSuccessfully imported {} in {:.3f} sec'.format(path, time.time() - time_start))
     return {'FINISHED'}
+
 
 def menu_func_import(self, context):
     self.layout.operator(ImportVOX.bl_idname, text="MagicaVoxel (.vox)")
