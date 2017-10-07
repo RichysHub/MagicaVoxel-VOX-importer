@@ -55,6 +55,11 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
 
     use_palette = BoolProperty(name="Use Palette Colors", default=True)
 
+    gamma_correct = BoolProperty(name="Gamma Correct Colors", default=True)
+    gamma_value = FloatProperty(name="Gamma Correction Value", default=2.2, min=0)
+
+    use_shadeless = BoolProperty(name="Use Shadeless Materials", default=False)
+
     def execute(self, context):
         paths = [os.path.join(self.directory, name.name)
                  for name in self.files]
@@ -76,11 +81,16 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
             layout.prop(self, "start_voxel")
             layout.prop(self, "end_voxel")
         layout.prop(self, "use_palette")
+        layout.prop(self, "gamma_correct")
+        if self.gamma_correct:
+            layout.prop(self, "gamma_value")
+        layout.prop(self, "use_shadeless")
+
 
 
 def import_vox(path, *, voxel_spacing=1, voxel_size=1,
                use_bounds=False, start_voxel=None, end_voxel=None,
-               use_palette=True):
+               use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False):
     import time
     time_start = time.time()
 
@@ -149,14 +159,17 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
             # This is done here, so to avoid adding materials for voxels not in bounds
             used_palette_indices.add(voxel[3])  # record the pallette entry is used
 
+        if not gamma_correct:
+            gamma_value = 1
         mat_palette = {}
 
         for index in used_palette_indices:
             palette_entry = palette[index]
             material = bpy.data.materials.new("Voxel_mat{}".format(index))
-            material.diffuse_color = [col/255 for col in palette_entry[:3]]
+            material.diffuse_color = [pow(col/255, gamma_value) for col in palette_entry[:3]]
             material.diffuse_intensity = 1.0
             material.alpha = palette_entry[3]
+            material.use_shadeless = use_shadeless
             mat_palette.update({index: material})
 
     # peel first voxel information
@@ -180,6 +193,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
 
     for object_ in to_link:
         bpy.context.scene.objects.link(object_)
+
 
     bpy.context.scene.update()
 
