@@ -10,3 +10,6 @@ __pycache__/
 
 # Vox
 *.vox
+
+# Testing Utilities
+RGBA_stripper.py
