@@ -285,6 +285,7 @@ def replace_with_emission(node, node_tree):
         else:
             connected_sockets_out.append(None)
 
+
     new_node.location = (node.location.x, node.location.y)
 
     if color_link is not None:
