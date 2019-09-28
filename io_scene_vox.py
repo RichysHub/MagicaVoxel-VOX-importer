@@ -139,10 +139,12 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
 def import_vox(path, *, voxel_spacing=1, voxel_size=1,
                use_bounds=False, start_voxel=None, end_voxel=None,
                use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False):
-    import time
-    time_start = time.time()
+    os.system("cls")
 
     print('\nImporting voxel file {}\n'.format(path))
+
+    import time
+    time_start = time.time()
 
     with open(path, 'rb') as vox:
 
@@ -192,6 +194,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
                 binary = bin(prop_bits)
                 # Need to read property values, but this gets fiddly
                 # TODO: finish implementation
+                vox.seek(_offset + 12 + s_self, 0)
             else:
                 # Any other chunk, we don't know how to handle
                 # This puts us out-of-step
@@ -221,9 +224,6 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
             palette_entry = palette[index]
             material = bpy.data.materials.new("Voxel_mat{}".format(index))
             material.diffuse_color = [pow(col / 255, gamma_value) for col in palette_entry[:4]]
-            #material.diffuse_intensity = 1.0
-            #material.alpha = palette_entry[3]
-            #material.use_shadeless = use_shadeless
             if use_shadeless:
                 material.use_nodes = True
                 material_diffuse_to_emission(material)
@@ -269,8 +269,6 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
 #     http://web.purplefrog.com/~thoth/blender/python-cookbook/change-diffuse-to-emission-node.html 
 #==================================================================================================
 #
-import bpy
-
 def replace_with_emission(node, node_tree):
     new_node = node_tree.nodes.new('ShaderNodeEmission')
     connected_sockets_out = []
@@ -314,27 +312,12 @@ def material_diffuse_to_emission(mat):
         mat.node_tree.nodes.remove(node)
 
 
-def replace_on_selected_objects():
-    mats = set()
-    for obj in bpy.context.scene.objects:
-        if obj.select_set:
-            for slot in obj.material_slots:
-                mats.add(slot.material)
-
-    for mat in mats:
-        material_diffuse_to_emission(mat)
-
-def replace_in_all_materials():
-    for mat in bpy.data.materials:
-        material_diffuse_to_emission(mat)
-
-
 #
 #==================================================================================================
 #     Register - Unregister - MAIN
 #==================================================================================================
 #
-__classes__ = (
+classes = (
     ImportVOX,
 )
 
@@ -345,14 +328,14 @@ def menu_func_import(self, context):
 
 def register():
     from bpy.utils import register_class
-    for cls in __classes__:
+    for cls in classes:
         register_class(cls)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
 
 def unregister():
     from bpy.utils import unregister_class
-    for cls in reversed(__classes__):
+    for cls in reversed(classes):
         unregister_class(cls)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
