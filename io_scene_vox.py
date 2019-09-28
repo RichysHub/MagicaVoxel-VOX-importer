@@ -163,6 +163,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
 
         while True:
             try:
+                _offset = vox.tell()
                 *name, s_self, s_child = struct.unpack('<4cii', vox.read(12))
                 assert (s_child == 0)  # sanity check
                 name = b''.join(name).decode('utf-8')  # unsure of encoding..
