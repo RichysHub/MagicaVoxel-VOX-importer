@@ -327,16 +327,14 @@ def menu_func_import(self, context):
 
 
 def register():
-    from bpy.utils import register_class
     for cls in classes:
-        register_class(cls)
+        bpy.utils.register_class(cls)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
 
 def unregister():
-    from bpy.utils import unregister_class
     for cls in reversed(classes):
-        unregister_class(cls)
+        bpy.utils.unregister_class(cls)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
 
@@ -346,4 +344,3 @@ if __name__ == "__main__":
     # Test call
     #bpy.ops.import_scene.vox('INVOKE_DEFAULT')
     #bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-
