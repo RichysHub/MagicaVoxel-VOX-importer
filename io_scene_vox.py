@@ -247,7 +247,6 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
         copy = base_voxel.copy()
         copy.data = base_voxel.data.copy()
         copy.location = [float(coord) * voxel_spacing for coord in voxel[:3]]
-        #copy.parent = base_voxel
         to_link.append(copy)
         if use_palette:
             copy.active_material = mat_palette[voxel[3]]
@@ -285,8 +284,6 @@ def replace_with_emission(node, node_tree):
             connected_sockets_out.append( sock.links[0].to_socket)
         else:
             connected_sockets_out.append(None)
-
-    #print( defaults_in )
 
     new_node.location = (node.location.x, node.location.y)
 
