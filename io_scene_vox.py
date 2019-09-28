@@ -247,7 +247,6 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
         copy = base_voxel.copy()
         copy.data = base_voxel.data.copy()
         copy.location = [float(coord) * voxel_spacing for coord in voxel[:3]]
-        #copy.parent = base_voxel
         to_link.append(copy)
         if use_palette:
             copy.active_material = mat_palette[voxel[3]]
