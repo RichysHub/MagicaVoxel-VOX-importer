@@ -175,6 +175,8 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
                 binary = bin(prop_bits)
                 # Need to read property values, but this gets fiddly
                 # TODO: finish implementation
+                # We have read 16 bytes of this chunk so far, ignoring remainder
+                vox.read(s_self - 16)
             else:
                 # Any other chunk, we don't know how to handle
                 # This puts us out-of-step
