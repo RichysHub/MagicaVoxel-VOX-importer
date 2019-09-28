@@ -340,7 +340,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-    # Test call
-    #bpy.ops.import_scene.vox('INVOKE_DEFAULT')
-    #bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
