@@ -233,11 +233,17 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
     # peel first voxel information
     voxel, *voxels = voxels
     location = [float(coord) * voxel_spacing for coord in voxel[:3]]
+
     # Using primitive_cube_add once here, to give us a template cube
     bpy.ops.mesh.primitive_cube_add(size=voxel_size, location=location)
     base_voxel = bpy.context.object
     if use_palette:
         base_voxel.active_material = mat_palette[voxel[3]]
+
+    # create new collection and link it to the scene
+    name = os.path.basename(path)
+    collection = bpy.data.collections.new(name)
+    bpy.context.scene.collection.children.link(collection)
 
     print("Loaded voxels:", len(voxels))
 
@@ -252,7 +258,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
             copy.active_material = mat_palette[voxel[3]]
 
     for object_ in to_link:
-        bpy.context.scene.collection.objects.link(object_)
+        collection.objects.link(object_)
 
     print("Linked voxels:", len(to_link))
 
