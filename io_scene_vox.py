@@ -262,6 +262,9 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
 
     print("Linked voxels:", len(to_link))
 
+    # Delete the template cube
+    bpy.ops.object.delete({"selected_objects": [base_voxel]})
+
     layer = bpy.context.view_layer
     layer.update()
 
