@@ -234,7 +234,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
     voxel, *voxels = voxels
     location = [float(coord) * voxel_spacing for coord in voxel[:3]]
     # Using primitive_cube_add once here, to give us a template cube
-    bpy.ops.mesh.primitive_cube_add(size=0.5 * voxel_size, location=location)
+    bpy.ops.mesh.primitive_cube_add(size=voxel_size, location=location)
     base_voxel = bpy.context.object
     if use_palette:
         base_voxel.active_material = mat_palette[voxel[3]]
