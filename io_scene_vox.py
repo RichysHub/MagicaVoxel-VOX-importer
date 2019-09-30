@@ -234,7 +234,6 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
     # Using primitive_cube_add once here, to give us a template cube
     bpy.ops.mesh.primitive_cube_add(size=voxel_size)
     base_voxel = bpy.context.object
-        base_voxel.active_material = mat_palette[voxel[3]]
 
     # create new collection and link it to the scene
     name = os.path.basename(path)
