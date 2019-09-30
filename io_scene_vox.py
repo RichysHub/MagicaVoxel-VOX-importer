@@ -231,7 +231,6 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
             mat_palette.update({index: material})
 
     # peel first voxel information
-    voxel, *voxels = voxels
     location = [float(coord) * voxel_spacing for coord in voxel[:3]]
 
     # Using primitive_cube_add once here, to give us a template cube
