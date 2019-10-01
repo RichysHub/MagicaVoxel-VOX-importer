@@ -205,7 +205,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
     if use_bounds:
         # clamp end_voxel to size of model
         end = min([end_voxel, len(voxels)])
-        voxels = voxels[start_voxel:end]
+        voxels = voxels[start_voxel - 1:end]
 
     if not palette:  # no palette provided, use default
         for col in range(256):
