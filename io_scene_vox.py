@@ -223,8 +223,10 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
 
         for index in used_palette_indices:
             palette_entry = palette[index]
+            gamma_corrected = [pow(col / 255, gamma_value) for col in palette_entry[:3]]
+            gamma_corrected.append(palette_entry[3])
             material = bpy.data.materials.new("Voxel_mat{}".format(index))
-            material.diffuse_color = [pow(col / 255, gamma_value) for col in palette_entry[:4]]
+            material.diffuse_color = gamma_corrected
             if use_shadeless:
                 material.use_nodes = True
                 material_diffuse_to_emission(material)
