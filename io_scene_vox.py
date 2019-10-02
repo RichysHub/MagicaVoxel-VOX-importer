@@ -209,7 +209,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
 
     if not palette:  # no palette provided, use default
         for col in range(256):
-            palette.update({col + 1: struct.unpack('<4B', struct.pack('>I', DEFAULT_PALETTE[col]))})
+            palette.update({col + 1: struct.unpack('<4B', struct.pack('<I', DEFAULT_PALETTE[col]))})
 
     if use_palette:
         used_palette_indices = set()
