@@ -17,8 +17,8 @@ import struct
 
 bl_info = {
     "name": "MagicaVoxel VOX format",
-    "author": "Richard Spencer",
-    "blender": (2, 74, 0),
+    "author": "Richard Spencer, Gabriele Scibilia (just for 2.80 porting)",
+    "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import MagicaVoxel .vox files",
     "warning": "",
@@ -26,6 +26,16 @@ bl_info = {
     "support": 'TESTING',
     "category": "Import-Export"}
 
+
+#
+#==================================================================================================
+#     MagicaVoxel - https://ephtracy.github.io/
+#           It is a free, open source software package that provides simple, yet surprisingly 
+#           powerful 3D modeling capability. 
+#           Creator ephtracy explains: A free lightweight 8-bit voxel art editor and interactive 
+#           path tracing renderer.
+#==================================================================================================
+#
 # Default palette, given in .vox 150 specification format
 DEFAULT_PALETTE = [0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff, 0xff00ffff, 0xffffccff,
                    0xffccccff, 0xff99ccff, 0xff66ccff, 0xff33ccff, 0xff00ccff, 0xffff99ff, 0xffcc99ff, 0xff9999ff,
@@ -61,38 +71,43 @@ DEFAULT_PALETTE = [0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0
                    0xffbbbbbb, 0xffaaaaaa, 0xff888888, 0xff777777, 0xff555555, 0xff444444, 0xff222222, 0xff111111]
 
 
+#
+#==================================================================================================
+#     BLENDER UI Properties - IMPORT Operator
+#==================================================================================================
+#
 class ImportVOX(bpy.types.Operator, ImportHelper):
     """Load a MagicaVoxel VOX File"""
     bl_idname = "import_scene.vox"
     bl_label = "Import VOX"
     bl_options = {'PRESET', 'UNDO'}
 
-    files = CollectionProperty(name="File Path",
+    files: CollectionProperty(name="File Path",
                                description="File path used for importing the VOX file",
                                type=bpy.types.OperatorFileListElement)
 
-    directory = StringProperty()
+    directory: StringProperty()
 
     filename_ext = ".vox"
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
         default="*.vox",
         options={'HIDDEN'},
     )
 
-    voxel_spacing = FloatProperty(name="Voxel Spacing", default=1.0)
-    voxel_size = FloatProperty(name="Voxel Size", default=1.0)
+    voxel_spacing: FloatProperty(name="Voxel Spacing", default=1.0)
+    voxel_size: FloatProperty(name="Voxel Size", default=1.0)
 
-    use_bounds = BoolProperty(name="Use Voxel Bounds", default=False)
+    use_bounds: BoolProperty(name="Use Voxel Bounds", default=False)
 
-    start_voxel = IntProperty(name="Start Voxel", default=1, min=1)
-    end_voxel = IntProperty(name="End Voxel", default=20, min=2)
+    start_voxel: IntProperty(name="Start Voxel", default=1, min=1)
+    end_voxel: IntProperty(name="End Voxel", default=20, min=2)
 
-    use_palette = BoolProperty(name="Use Palette Colors", default=True)
+    use_palette: BoolProperty(name="Use Palette Colors", default=True)
 
-    gamma_correct = BoolProperty(name="Gamma Correct Colors", default=True)
-    gamma_value = FloatProperty(name="Gamma Correction Value", default=2.2, min=0)
+    gamma_correct: BoolProperty(name="Gamma Correct Colors", default=True)
+    gamma_value: FloatProperty(name="Gamma Correction Value", default=2.2, min=0)
 
-    use_shadeless = BoolProperty(name="Use Shadeless Materials", default=False)
+    use_shadeless: BoolProperty(name="Use Shadeless Materials", default=False)
 
     def execute(self, context):
         paths = [os.path.join(self.directory, name.name)
@@ -124,6 +139,10 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
 def import_vox(path, *, voxel_spacing=1, voxel_size=1,
                use_bounds=False, start_voxel=None, end_voxel=None,
                use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False):
+    os.system("cls")
+
+    print('\nImporting voxel file {}\n'.format(path))
+
     import time
     time_start = time.time()
 
@@ -204,21 +223,26 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
 
         for index in used_palette_indices:
             palette_entry = palette[index]
+            gamma_corrected = [pow(col / 255, gamma_value) for col in palette_entry[:3]]
+            gamma_corrected.append(palette_entry[3])
             material = bpy.data.materials.new("Voxel_mat{}".format(index))
-            material.diffuse_color = [pow(col / 255, gamma_value) for col in palette_entry[:3]]
-            material.diffuse_intensity = 1.0
-            material.alpha = palette_entry[3]
-            material.use_shadeless = use_shadeless
+            material.diffuse_color = gamma_corrected
+            if use_shadeless:
+                material.use_nodes = True
+                material_diffuse_to_emission(material)
             mat_palette.update({index: material})
 
-    # peel first voxel information
-    voxel, *voxels = voxels
-    location = [float(coord) * voxel_spacing for coord in voxel[:3]]
+
     # Using primitive_cube_add once here, to give us a template cube
-    bpy.ops.mesh.primitive_cube_add(radius=0.5 * voxel_size, location=location)
+    bpy.ops.mesh.primitive_cube_add(size=voxel_size)
     base_voxel = bpy.context.object
-    if use_palette:
-        base_voxel.active_material = mat_palette[voxel[3]]
+
+    # create new collection and link it to the scene
+    name = os.path.basename(path)
+    collection = bpy.data.collections.new(name)
+    bpy.context.scene.collection.children.link(collection)
+
+    print("Loaded voxels:", len(voxels))
 
     to_link = []
 
@@ -231,12 +255,76 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
             copy.active_material = mat_palette[voxel[3]]
 
     for object_ in to_link:
-        bpy.context.scene.objects.link(object_)
+        collection.objects.link(object_)
 
-    bpy.context.scene.update()
+    print("Linked voxels:", len(to_link))
+
+    # Delete the template cube
+    bpy.ops.object.delete({"selected_objects": [base_voxel]})
+
+    layer = bpy.context.view_layer
+    layer.update()
 
     print('\nSuccessfully imported {} in {:.3f} sec'.format(path, time.time() - time_start))
     return {'FINISHED'}
+
+
+#
+#==================================================================================================
+#     Change Diffuse shader to Emission shader without affecting shader color
+#     http://web.purplefrog.com/~thoth/blender/python-cookbook/change-diffuse-to-emission-node.html 
+#==================================================================================================
+#
+def replace_with_emission(node, node_tree):
+    new_node = node_tree.nodes.new('ShaderNodeEmission')
+    connected_sockets_out = []
+    sock = node.inputs[0]
+    if len(sock.links)>0:
+        color_link = sock.links[0].from_socket
+    else:
+        color_link=None
+    defaults_in = sock.default_value[:]
+
+    for sock in node.outputs:
+        if len(sock.links)>0:
+            connected_sockets_out.append( sock.links[0].to_socket)
+        else:
+            connected_sockets_out.append(None)
+
+
+    new_node.location = (node.location.x, node.location.y)
+
+    if color_link is not None:
+        node_tree.links.new(new_node.inputs[0], color_link)
+    new_node.inputs[0].default_value = defaults_in
+
+    if connected_sockets_out[0] is not None:
+        node_tree.links.new(connected_sockets_out[0], new_node.outputs[0])
+
+
+def material_diffuse_to_emission(mat):
+
+    doomed=[]
+    for node in mat.node_tree.nodes:
+        if node.type=='BSDF_DIFFUSE' or node.type=='BSDF_PRINCIPLED':
+            replace_with_emission(node, mat.node_tree)
+            doomed.append(node)
+        else:
+            print(node.type)
+
+    # wait until we are done iterating and adding before we start wrecking things
+    for node in doomed:
+        mat.node_tree.nodes.remove(node)
+
+
+#
+#==================================================================================================
+#     Register - Unregister - MAIN
+#==================================================================================================
+#
+classes = (
+    ImportVOX,
+)
 
 
 def menu_func_import(self, context):
@@ -244,13 +332,15 @@ def menu_func_import(self, context):
 
 
 def register():
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
+    for cls in classes:
+        bpy.utils.register_class(cls)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
 
 if __name__ == "__main__":
