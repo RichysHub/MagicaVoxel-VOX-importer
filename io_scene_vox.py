@@ -17,7 +17,8 @@ import struct
 
 bl_info = {
     "name": "MagicaVoxel VOX format",
-    "author": "Richard Spencer, Gabriele Scibilia (just for 2.80 porting)",
+    "author": "Richard Spencer, Gabriele Scibilia",
+    "version": (2, 1),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import MagicaVoxel .vox files",
@@ -97,6 +98,8 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
     voxel_spacing: FloatProperty(name="Voxel Spacing", default=1.0)
     voxel_size: FloatProperty(name="Voxel Size", default=1.0)
 
+    load_frame: IntProperty(name="Animation frame to load", default=0, min=0)
+
     use_bounds: BoolProperty(name="Use Voxel Bounds", default=False)
 
     start_voxel: IntProperty(name="Start Voxel", default=1, min=1)
@@ -125,6 +128,7 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
         layout = self.layout
         layout.prop(self, "voxel_spacing")
         layout.prop(self, "voxel_size")
+        layout.prop(self, "load_frame")
         layout.prop(self, "use_bounds")
         if self.use_bounds:
             layout.prop(self, "start_voxel")
@@ -136,7 +140,7 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
         layout.prop(self, "use_shadeless")
 
 
-def import_vox(path, *, voxel_spacing=1, voxel_size=1,
+def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
                use_bounds=False, start_voxel=None, end_voxel=None,
                use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False):
     os.system("cls")
@@ -150,6 +154,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
 
         voxels = []
         palette = {}
+        current_frame = 0
 
         # assert is VOX 150 file
         assert (struct.unpack('<4ci', vox.read(8)) == (b'V', b'O', b'X', b' ', 150))
@@ -171,17 +176,24 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
                 break
             if name == 'PACK':
                 # number of models
-                num_models = struct.unpack('<i', vox.read(4))
+                num_models, = struct.unpack('<i', vox.read(4))
+                # clamp load_frame to total number of frames
+                load_frame = min(load_frame, num_models)
             elif name == 'SIZE':
                 # model size
                 # x, y, z = struct.unpack('<3i', vox.read(12))
                 vox.read(12)
             elif name == 'XYZI':
                 # voxel data
-                num_voxels, = struct.unpack('<i', vox.read(4))
-                for voxel in range(num_voxels):
-                    voxel_data = struct.unpack('<4B', vox.read(4))
-                    voxels.append(voxel_data)
+                if current_frame == load_frame:
+                    num_voxels, = struct.unpack('<i', vox.read(4))
+                    for voxel in range(num_voxels):
+                        voxel_data = struct.unpack('<4B', vox.read(4))
+                        voxels.append(voxel_data)
+                else:
+                    print("Skipping voxels in frame #{}".format(current_frame))
+                    vox.read(s_self)
+                current_frame += 1
             elif name == 'RGBA':
                 # palette
                 for col in range(256):
