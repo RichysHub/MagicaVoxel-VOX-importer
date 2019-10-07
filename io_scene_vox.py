@@ -28,13 +28,13 @@ bl_info = {
 
 
 #
-#==================================================================================================
+# =================================================================================================
 #     MagicaVoxel - https://ephtracy.github.io/
 #           It is a free, open source software package that provides simple, yet surprisingly 
 #           powerful 3D modeling capability. 
 #           Creator ephtracy explains: A free lightweight 8-bit voxel art editor and interactive 
 #           path tracing renderer.
-#==================================================================================================
+# =================================================================================================
 #
 # Default palette, given in .vox 150 specification format
 DEFAULT_PALETTE = [0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff, 0xff00ffff, 0xffffccff,
@@ -72,9 +72,9 @@ DEFAULT_PALETTE = [0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0
 
 
 #
-#==================================================================================================
+# =================================================================================================
 #     BLENDER UI Properties - IMPORT Operator
-#==================================================================================================
+# =================================================================================================
 #
 class ImportVOX(bpy.types.Operator, ImportHelper):
     """Load a MagicaVoxel VOX File"""
@@ -83,8 +83,8 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
     bl_options = {'PRESET', 'UNDO'}
 
     files: CollectionProperty(name="File Path",
-                               description="File path used for importing the VOX file",
-                               type=bpy.types.OperatorFileListElement)
+                              description="File path used for importing the VOX file",
+                              type=bpy.types.OperatorFileListElement)
 
     directory: StringProperty()
 
@@ -141,7 +141,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
                use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False):
     os.system("cls")
 
-    print('\nImporting voxel file {}\n'.format(path))
+    print("\nImporting voxel file {}\n".format(path))
 
     import time
     time_start = time.time()
@@ -199,7 +199,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
             else:
                 # Any other chunk, we don't know how to handle
                 # This puts us out-of-step
-                print('Unknown Chunk id {}'.format(name))
+                print("Unknown Chunk id {}".format(name))
                 return {'CANCELLED'}
 
     if use_bounds:
@@ -231,7 +231,6 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
                 material.use_nodes = True
                 material_diffuse_to_emission(material)
             mat_palette.update({index: material})
-
 
     # Using primitive_cube_add once here, to give us a template cube
     bpy.ops.mesh.primitive_cube_add(size=voxel_size)
@@ -265,32 +264,31 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1,
     layer = bpy.context.view_layer
     layer.update()
 
-    print('\nSuccessfully imported {} in {:.3f} sec'.format(path, time.time() - time_start))
+    print("\nSuccessfully imported {} in {:.3f} sec".format(path, time.time() - time_start))
     return {'FINISHED'}
 
 
 #
-#==================================================================================================
+# =================================================================================================
 #     Change Diffuse shader to Emission shader without affecting shader color
 #     http://web.purplefrog.com/~thoth/blender/python-cookbook/change-diffuse-to-emission-node.html 
-#==================================================================================================
+# =================================================================================================
 #
 def replace_with_emission(node, node_tree):
     new_node = node_tree.nodes.new('ShaderNodeEmission')
     connected_sockets_out = []
     sock = node.inputs[0]
-    if len(sock.links)>0:
+    if len(sock.links) > 0:
         color_link = sock.links[0].from_socket
     else:
-        color_link=None
+        color_link = None
     defaults_in = sock.default_value[:]
 
     for sock in node.outputs:
-        if len(sock.links)>0:
-            connected_sockets_out.append( sock.links[0].to_socket)
+        if len(sock.links) > 0:
+            connected_sockets_out.append(sock.links[0].to_socket)
         else:
             connected_sockets_out.append(None)
-
 
     new_node.location = (node.location.x, node.location.y)
 
@@ -304,9 +302,9 @@ def replace_with_emission(node, node_tree):
 
 def material_diffuse_to_emission(mat):
 
-    doomed=[]
+    doomed = []
     for node in mat.node_tree.nodes:
-        if node.type=='BSDF_DIFFUSE' or node.type=='BSDF_PRINCIPLED':
+        if node.type == 'BSDF_DIFFUSE' or node.type == 'BSDF_PRINCIPLED':
             replace_with_emission(node, mat.node_tree)
             doomed.append(node)
         else:
@@ -318,9 +316,9 @@ def material_diffuse_to_emission(mat):
 
 
 #
-#==================================================================================================
+# =================================================================================================
 #     Register - Unregister - MAIN
-#==================================================================================================
+# =================================================================================================
 #
 classes = (
     ImportVOX,
