@@ -143,6 +143,22 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
         layout.prop(self, "join_voxels")
 
 
+def join_selected(context):
+    """Given a context, joins selected objects to the active one"""
+    active = context.active_object
+    selection = context.selected_objects
+    selected = set(selection).difference(set([active]))
+
+    if not (active and selected):
+        return
+
+    print("Joining voxels, wait please...")
+    print("\tActive object:", active.name)
+    print("\tSelected objects:", len(selected))
+
+    bpy.ops.object.join()
+
+
 def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
                use_bounds=False, start_voxel=None, end_voxel=None,
                use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False,
