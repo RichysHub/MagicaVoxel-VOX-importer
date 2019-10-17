@@ -112,6 +112,8 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
 
     use_shadeless: BoolProperty(name="Use Shadeless Materials", default=False)
 
+    join_voxels: BoolProperty(name="Join Voxels", description="Joining voxels you'll have a single object", default=False)
+
     def execute(self, context):
         paths = [os.path.join(self.directory, name.name)
                  for name in self.files]
@@ -138,11 +140,29 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
         if self.gamma_correct:
             layout.prop(self, "gamma_value")
         layout.prop(self, "use_shadeless")
+        layout.prop(self, "join_voxels")
+
+
+def join_selected(context):
+    """Given a context, joins selected objects to the active one"""
+    active = context.active_object
+    selection = context.selected_objects
+    selected = set(selection).difference(set([active]))
+
+    if not (active and selected):
+        return
+
+    print("Joining voxels, wait please...")
+    print("\tActive object:", active.name)
+    print("\tSelected objects:", len(selected))
+
+    bpy.ops.object.join()
 
 
 def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
                use_bounds=False, start_voxel=None, end_voxel=None,
-               use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False):
+               use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False,
+               join_voxels=False):
     os.system("cls")
 
     print("\nImporting voxel file {}\n".format(path))
@@ -269,6 +289,11 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
         collection.objects.link(object_)
 
     print("Linked voxels:", len(to_link))
+
+    if join_voxels:
+        base_voxel.select_set(False)
+        bpy.context.view_layer.objects.active = bpy.context.selected_objects[0]
+        join_selected(bpy.context)
 
     # Delete the template cube
     bpy.ops.object.delete({"selected_objects": [base_voxel]})
