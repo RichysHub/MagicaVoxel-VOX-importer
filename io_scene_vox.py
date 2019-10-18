@@ -201,8 +201,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
                 load_frame = min(load_frame, num_models)
             elif name == 'SIZE':
                 # model size
-                # x, y, z = struct.unpack('<3i', vox.read(12))
-                vox.read(12)
+                 x, y, z = struct.unpack('<3i', vox.read(12))
             elif name == 'XYZI':
                 # voxel data
                 if current_frame == load_frame:
@@ -294,6 +293,13 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
         base_voxel.select_set(False)
         bpy.context.view_layer.objects.active = bpy.context.selected_objects[0]
         join_selected(bpy.context)
+
+        # Set object pivot using cursor location and model size
+        saved_location = bpy.context.scene.cursor.location.copy()
+        bpy.context.scene.cursor.location = (x * voxel_spacing / 2.0, y * voxel_spacing / 2.0, z * voxel_spacing / 2.0)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+        bpy.context.scene.cursor.location = saved_location
 
     # Delete the template cube
     bpy.ops.object.delete({"selected_objects": [base_voxel]})
