@@ -18,7 +18,7 @@ import struct
 bl_info = {
     "name": "MagicaVoxel VOX format",
     "author": "Richard Spencer, Gabriele Scibilia",
-    "version": (2, 1),
+    "version": (2, 2, 1),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "Import MagicaVoxel .vox files",
@@ -31,9 +31,9 @@ bl_info = {
 #
 # =================================================================================================
 #     MagicaVoxel - https://ephtracy.github.io/
-#           It is a free, open source software package that provides simple, yet surprisingly 
-#           powerful 3D modeling capability. 
-#           Creator ephtracy explains: A free lightweight 8-bit voxel art editor and interactive 
+#           It is a free, open source software package that provides simple, yet surprisingly
+#           powerful 3D modeling capability.
+#           Creator ephtracy explains: A free lightweight 8-bit voxel art editor and interactive
 #           path tracing renderer.
 # =================================================================================================
 #
@@ -308,7 +308,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
 #
 # =================================================================================================
 #     Change Diffuse shader to Emission shader without affecting shader color
-#     http://web.purplefrog.com/~thoth/blender/python-cookbook/change-diffuse-to-emission-node.html 
+#     http://web.purplefrog.com/~thoth/blender/python-cookbook/change-diffuse-to-emission-node.html
 # =================================================================================================
 #
 def replace_with_emission(node, node_tree):
