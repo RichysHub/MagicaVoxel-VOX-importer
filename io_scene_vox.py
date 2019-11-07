@@ -264,42 +264,91 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
                 material_diffuse_to_emission(material)
             mat_palette.update({index: material})
 
-    # Using primitive_cube_add once here, to give us a template cube
-    bpy.ops.mesh.primitive_cube_add(size=voxel_size)
-    base_voxel = bpy.context.object
-
-    # create new collection and link it to the scene
-    name = os.path.basename(path)
-    collection = bpy.data.collections.new(name)
-    bpy.context.scene.collection.children.link(collection)
-
-    print("Loaded voxels:", len(voxels))
-
-    to_link = []
-
-    for voxel in voxels:
-        copy = base_voxel.copy()
-        copy.data = base_voxel.data.copy()
-        copy.location = [float(coord) * voxel_spacing for coord in voxel[:3]]
-        to_link.append(copy)
-        if use_palette:
-            copy.active_material = mat_palette[voxel[3]]
-
-    for object_ in to_link:
-        collection.objects.link(object_)
-
-    print("Linked voxels:", len(to_link))
-
     if join_voxels:
-        base_voxel.select_set(False)
-        bpy.context.view_layer.objects.active = bpy.context.selected_objects[0]
-        join_selected(bpy.context)
+        # We want to track faces in 6 lists, so we know which we need to add when the time comes.
+        # up, down, left, right, front, back
+        # +x is right, +y is front, +z is up
 
-    # Delete the template cube
-    bpy.ops.object.delete({"selected_objects": [base_voxel]})
+        name = os.path.basename(path)
+        mesh = bpy.data.meshes.new(name=name)
+        vertices = []
+        faces = []
 
-    layer = bpy.context.view_layer
-    layer.update()
+        # first version will be all of the faces, vertices, everything. No removing doubles, or internal geometry.
+        # the vertices of the voxels are added once, not multiple times
+        # i.e., each voxel is 8 verrtices, not 24
+
+        for voxel in voxels:
+            position = [float(coord) * voxel_spacing for coord in voxel[:3]]
+            x, y, z = position
+            current_vertices = len(vertices)
+
+            # distance from center of voxel to its vertices
+            vertex_offset = voxel_size / 2
+            vo = vertex_offset
+            # manually listing the 8 vertices that make the cube
+            voxel_vertices = [(x-vo, y-vo, z-vo),
+                              (x-vo, y-vo, z+vo),
+                              (x-vo, y+vo, z+vo),
+                              (x-vo, y+vo, z-vo),
+                              (x+vo, y-vo, z-vo),
+                              (x+vo, y-vo, z+vo),
+                              (x+vo, y+vo, z+vo),
+                              (x+vo, y+vo, z-vo), ]
+            # faces are navigated anticlockwise, to give correct normal
+            voxel_faces = [(0, 4, 5, 1), (4, 7, 6, 5), (7, 3, 2, 6), (3, 0, 1, 2), (1, 5, 6, 2), (3, 7, 4, 0)]
+
+            vertices.extend(voxel_vertices)
+            # use current number of vertices as an offset, to use correct vertices
+            faces.extend([tuple((x + current_vertices for x in face)) for face in voxel_faces])
+
+        mesh.from_pydata(vertices=vertices, edges=[], faces=faces)
+
+        # would need to handle materials, using mesh.materials indexes, in mesh.polygons.material_index
+
+        mesh.update()
+        mesh.validate()
+
+        obj = bpy.data.objects.new(name, mesh)
+        scene = bpy.context.scene
+        scene.collection.objects.link(obj)
+
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+
+    else:
+        # Using primitive_cube_add once here, to give us a template cube
+        bpy.ops.mesh.primitive_cube_add(size=voxel_size)
+        base_voxel = bpy.context.object
+
+        # create new collection and link it to the scene
+        name = os.path.basename(path)
+        collection = bpy.data.collections.new(name)
+        bpy.context.scene.collection.children.link(collection)
+
+        print("Loaded voxels:", len(voxels))
+
+        to_link = []
+
+        for voxel in voxels:
+            copy = base_voxel.copy()
+            copy.data = base_voxel.data.copy()
+            copy.location = [float(coord) * voxel_spacing for coord in voxel[:3]]
+            to_link.append(copy)
+            if use_palette:
+                copy.active_material = mat_palette[voxel[3]]
+
+        for object_ in to_link:
+            collection.objects.link(object_)
+
+        print("Linked voxels:", len(to_link))
+
+        # Delete the template cube
+        bpy.ops.object.delete({"selected_objects": [base_voxel]})
+
+        layer = bpy.context.view_layer
+        layer.update()
 
     print("\nSuccessfully imported {} in {:.3f} sec".format(path, time.time() - time_start))
     return {'FINISHED'}
