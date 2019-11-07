@@ -274,6 +274,9 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
         vertices = []
         faces = []
 
+        mesh_palette_material_map = {}
+        polygon_material_indices = []
+
         # first version will be all of the faces, vertices, everything. No removing doubles, or internal geometry.
         # the vertices of the voxels are added once, not multiple times
         # i.e., each voxel is 8 verrtices, not 24
@@ -301,10 +304,20 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
             vertices.extend(voxel_vertices)
             # use current number of vertices as an offset, to use correct vertices
             faces.extend([tuple((x + current_vertices for x in face)) for face in voxel_faces])
+            if use_palette:
+                voxel_material_palette_index = voxel[3]
+                if voxel_material_palette_index not in mesh_palette_material_map:
+                    # keeping track of material indexes with a dictionary
+                    mesh_palette_material_map.update({voxel_material_palette_index: len(mesh.materials)})
+                    mesh.materials.append(mat_palette[voxel_material_palette_index])
+
+                # voxels have 6 faces, so append it 6 times
+                polygon_material_indices.extend([mesh_palette_material_map[voxel_material_palette_index]]*6)
 
         mesh.from_pydata(vertices=vertices, edges=[], faces=faces)
 
-        # would need to handle materials, using mesh.materials indexes, in mesh.polygons.material_index
+        for polygon, material_index in zip(mesh.polygons, polygon_material_indices):
+            polygon.material_index = material_index
 
         mesh.update()
         mesh.validate()
