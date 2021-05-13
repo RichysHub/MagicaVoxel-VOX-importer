@@ -21,12 +21,12 @@ from bpy_extras.io_utils import ImportHelper
 import struct
 
 bl_info = {
-    "name": "Meebits VOX format",
-    "author": "Dagfinn Parnas with forked code from Richard Spencer, Gabriele Scibilia",
+    "name": "Meebit (.vox)",
+    "author": "Dagfinn Parnas based on forked code from Richard Spencer, Gabriele Scibilia",
     "version": (2, 2, 1),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
-    "description": "Import Meebits from .vox files",
+    "description": "Import Meebit from .vox file",
     "warning": "",
     "wiki_url": "",
     "support": 'TESTING',
@@ -376,7 +376,7 @@ classes = (
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportVOX.bl_idname, text="Meebits MagicaVoxel (.vox)")
+    self.layout.operator(ImportVOX.bl_idname, text="Meebit (.vox)")
 
 
 def register():
