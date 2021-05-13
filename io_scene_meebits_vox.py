@@ -1,5 +1,10 @@
 """
-This script imports MagicaVoxel VOX files to Blender.
+This script imports Meebits VOX files to Blender.
+It is only possible as it can extend on https://github.com/RichysHub/MagicaVoxel-VOX-importer
+
+Vox file format:
+https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt
+https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox-extension.txt
 
 Usage:
 Run this script from "File->Import" menu and then load the desired VOX file.
@@ -16,12 +21,12 @@ from bpy_extras.io_utils import ImportHelper
 import struct
 
 bl_info = {
-    "name": "MagicaVoxel VOX format",
-    "author": "Richard Spencer, Gabriele Scibilia",
+    "name": "Meebits VOX format",
+    "author": "Dagfinn Parnas with forked code from Richard Spencer, Gabriele Scibilia",
     "version": (2, 2, 1),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
-    "description": "Import MagicaVoxel .vox files",
+    "description": "Import Meebits from .vox files",
     "warning": "",
     "wiki_url": "",
     "support": 'TESTING',
@@ -79,8 +84,8 @@ DEFAULT_PALETTE = [0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0
 #
 class ImportVOX(bpy.types.Operator, ImportHelper):
     """Load a MagicaVoxel VOX File"""
-    bl_idname = "import_scene.vox"
-    bl_label = "Import VOX"
+    bl_idname = "import_meebits_scene.vox"
+    bl_label = "Import Meebits VOX"
     bl_options = {'PRESET', 'UNDO'}
 
     files: CollectionProperty(name="File Path",
@@ -189,21 +194,23 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
         while True:
             try:
                 *name, s_self, s_child = struct.unpack('<4cii', vox.read(12))
-                assert (s_child == 0)  # sanity check
                 name = b''.join(name).decode('utf-8')  # unsure of encoding..
             except struct.error:
                 # end of file
                 break
             if name == 'PACK':
+                print("Reading vox PACK")   
                 # number of models
                 num_models, = struct.unpack('<i', vox.read(4))
                 # clamp load_frame to total number of frames
                 load_frame = min(load_frame, num_models)
             elif name == 'SIZE':
+                print("Reading vox SIZE")   
                 # model size
                 # x, y, z = struct.unpack('<3i', vox.read(12))
                 vox.read(12)
             elif name == 'XYZI':
+                print("Reading vox XYZI")    
                 # voxel data
                 if current_frame == load_frame:
                     num_voxels, = struct.unpack('<i', vox.read(4))
@@ -216,9 +223,11 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
                 current_frame += 1
             elif name == 'RGBA':
                 # palette
+                print("Reading voxel RGBA")    
                 for col in range(256):
                     palette.update({col + 1: struct.unpack('<4B', vox.read(4))})
             elif name == 'MATT':
+                print("Reading vox MATT")   
                 # material
                 matt_id, mat_type, weight = struct.unpack('<iif', vox.read(12))
 
@@ -228,11 +237,15 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
                 # TODO: finish implementation
                 # We have read 16 bytes of this chunk so far, ignoring remainder
                 vox.read(s_self - 16)
+            elif name == 'MATL': 
+                 print("Ignoring MATL")
+                 vox.read(s_self)              
             else:
                 # Any other chunk, we don't know how to handle
-                # This puts us out-of-step
+                # This may put us out-of-step, but for meebits we'll go ahead anyway
                 print("Unknown Chunk id {}".format(name))
-                return {'CANCELLED'}
+                vox.read(s_self)  
+                # return {'CANCELLED'}
 
     if use_bounds:
         # clamp end_voxel to size of model
@@ -363,7 +376,7 @@ classes = (
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportVOX.bl_idname, text="MagicaVoxel (.vox)")
+    self.layout.operator(ImportVOX.bl_idname, text="Meebits MagicaVoxel (.vox)")
 
 
 def register():
