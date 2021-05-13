@@ -30,7 +30,7 @@ With the add-on installed and enabled, the importer can be accessed from `File >
 
 This add-on offers several import options, seen on the file select menu of the import.
 
-![Import Options](https://i.imgur.com/Syyxs8E.png)
+![Import options](https://user-images.githubusercontent.com/1133607/118180844-51974080-b437-11eb-92b6-50bf10d0d9fa.png)
 
 - *Voxel Spacing*: controls distance center to center of neighbouring voxels.
 - *Voxel Size*: how large each voxel should be, in Blender Units.
@@ -41,7 +41,7 @@ This add-on offers several import options, seen on the file select menu of the i
 - *Gamma Correct Colors*: in order to reproduce colors in the render, colors in the palette are gamma corrected. Disabling this will likely cause discoloration compared to the model when viewed in MagicaVoxel.
   - *Gamma Correction Value*: value of color correction, default of 2.2, see [here](https://docs.blender.org/manual/en/latest/render/color_management.html) for more information.
 - *Use Shadeless Materials*: makes materials 'shadeless' by changing the material type to emissive.
-- *Join Voxels*: currently naïve option to perform a join operation on the voxels after import. This will make manipulating the model much more performant, though is not suitable in all cases, i.e. physics simulations.
+- *Join Voxels*: Joins all voxel together into on model. If this is not selected, the meebit will consist of a few thousand individual cubes (perfect for physics simulations)
 
 ## Questions and Concerns
 
