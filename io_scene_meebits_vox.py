@@ -117,7 +117,7 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
 
     use_shadeless: BoolProperty(name="Use Shadeless Materials", default=False)
 
-    join_voxels: BoolProperty(name="Join Voxels", description="Joining voxels you'll have a single object", default=False)
+    join_voxels: BoolProperty(name="Join Voxels", description="Joining voxels you'll have a single object", default=True)
 
     def execute(self, context):
         paths = [os.path.join(self.directory, name.name)
