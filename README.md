@@ -1,11 +1,9 @@
-# MagicaVoxel-VOX-importer
-Blender import add-on for [MagicaVoxel `.vox` format](https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt).
+# Meebits vox importer
+Blender import add-on for Meebits based on [MagicaVoxel `.vox` format](https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt)\
 
-![](https://img.shields.io/github/license/RichysHub/MagicaVoxel-VOX-importer)
+![](https://img.shields.io/github/license/elsewhat/meebits-vox-importer)
 
-MagicaVoxel and other voxel editing software are great to quickly create voxel models, though it's not always desirable to stay within that ecosystem. This add-on imports each voxel of the original model as an individual cube primitive. This opens up the use of voxel models for projects such as physics simulations.
-
-![Example Physics Simulation](https://i.imgur.com/r0EwHFO.gif)
+This is a fork of [RichysHub / MagicaVoxel-VOX-importer](https://github.com/RichysHub/MagicaVoxel-VOX-importer)
 
 ## Getting Started
 
@@ -14,23 +12,14 @@ MagicaVoxel and other voxel editing software are great to quickly create voxel m
 This add-on needs to be installed into Blender in order to be used.
 Directions for this process can be found [here](https://docs.blender.org/manual/en/latest/editors/preferences/addons.html#rd-party-add-ons) directly from the Blender Documentation.
 
-Only [`io_scene_vox.py`](io_scene_vox.py) need be installed, other files in this repository are not functionally required.
+Only [`io_scene_meebits_vox.py`](io_scene_meebits_vox.py) need be installed, other files in this repository are not functionally required.
 
 **Note:** in order to enable the add-on, you will need to have `Testing` add-ons visible within the Blender Preferences menu.
 ![Enabling Add-on in Prefernces](https://i.imgur.com/nkFs0vY.png)
 
 ### Usage
 
-With the add-on installed and enabled, the importer can be accessed from `File > Import > MagicaVoxel (.vox)`
-
-![Import Menu](https://i.imgur.com/8BsXLnF.png)
-
-**Note**: currently this add-on does not support all the features of `.vox` files created with MagicaVoxel 0.99 and above. If this is the version of MagicaVoxel you are using, you will need to export your file to the older 0.98 format before import.
-
-**This export is destructive**, it will remove layer information and other features that were added in 0.99. It is therefore recommended you export as a separate filename so as to not lose work.
-
-![Exporting to Legacy VOX](https://i.imgur.com/WrSOok7.png)
-
+With the add-on installed and enabled, the importer can be accessed from `File > Import > Meebit (.vox)`
 
 ### Import options
 
@@ -54,10 +43,6 @@ This add-on offers several import options, seen on the file select menu of the i
 If in using this add-on you encounter difficulties, be sure to check [the issues](), in case a solution has been outlined there. If not, then issues are welcomed.
 
 ## Changelog and Versioning
-
-The changes made to this repository are documented in the [CHANGELOG](CHANGELOG.md).
-This repository uses [SemVer](http://semver.org/) for versioning.
-For the versions available, see the [tags on this repository](https://github.com/RichysHub/MagicaVoxel-VOX-importer/releases/tags).
 
 ## License
 
