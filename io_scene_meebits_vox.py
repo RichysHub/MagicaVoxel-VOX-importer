@@ -100,8 +100,8 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
         options={'HIDDEN'},
     )
 
-    voxel_spacing: FloatProperty(name="Voxel Spacing", default=1.0)
-    voxel_size: FloatProperty(name="Voxel Size", default=1.0)
+    voxel_spacing: FloatProperty(name="Voxel Spacing", default=0.025)
+    voxel_size: FloatProperty(name="Voxel Size", default=0.025)
 
     gamma_correct: BoolProperty(name="Gamma Correct Colors", default=True)
     gamma_value: FloatProperty(name="Gamma Correction Value", default=2.2, min=0)
@@ -149,7 +149,7 @@ def join_selected(context):
     bpy.ops.object.join()
 
 
-def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
+def import_vox(path, *, voxel_spacing=0.025, voxel_size=0.025, load_frame=0,
                use_bounds=False, start_voxel=None, end_voxel=None,
                use_palette=True, gamma_correct=True, gamma_value=2.2, use_shadeless=False,
                join_voxels=False):
