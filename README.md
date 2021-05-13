@@ -1,5 +1,8 @@
 # Meebits vox importer
-Blender import add-on for Meebits based on [MagicaVoxel `.vox` format](https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt)\
+Blender import add-on for Meebits based on [MagicaVoxel `.vox` format](https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt)
+
+![image](https://user-images.githubusercontent.com/1133607/118179571-c2d5f400-b435-11eb-98be-3eeb58957717.png)
+
 
 ![](https://img.shields.io/github/license/elsewhat/meebits-vox-importer)
 
@@ -15,7 +18,9 @@ Directions for this process can be found [here](https://docs.blender.org/manual/
 Only [`io_scene_meebits_vox.py`](io_scene_meebits_vox.py) need be installed, other files in this repository are not functionally required.
 
 **Note:** in order to enable the add-on, you will need to have `Testing` add-ons visible within the Blender Preferences menu.
-![Enabling Add-on in Prefernces](https://i.imgur.com/nkFs0vY.png)
+
+![Enabling Add-on in Prefernces](https://user-images.githubusercontent.com/1133607/118179489-a89c1600-b435-11eb-9664-fd3f51c744a2.png)
+
 
 ### Usage
 
