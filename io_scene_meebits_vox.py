@@ -85,7 +85,7 @@ DEFAULT_PALETTE = [0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0
 class ImportVOX(bpy.types.Operator, ImportHelper):
     """Load a MagicaVoxel VOX File"""
     bl_idname = "import_meebits_scene.vox"
-    bl_label = "Import Meebits VOX"
+    bl_label = "Import Meebit"
     bl_options = {'PRESET', 'UNDO'}
 
     files: CollectionProperty(name="File Path",
@@ -102,15 +102,6 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
 
     voxel_spacing: FloatProperty(name="Voxel Spacing", default=1.0)
     voxel_size: FloatProperty(name="Voxel Size", default=1.0)
-
-    load_frame: IntProperty(name="Animation frame to load", default=0, min=0)
-
-    use_bounds: BoolProperty(name="Use Voxel Bounds", default=False)
-
-    start_voxel: IntProperty(name="Start Voxel", default=1, min=1)
-    end_voxel: IntProperty(name="End Voxel", default=20, min=2)
-
-    use_palette: BoolProperty(name="Use Palette Colors", default=True)
 
     gamma_correct: BoolProperty(name="Gamma Correct Colors", default=True)
     gamma_value: FloatProperty(name="Gamma Correction Value", default=2.2, min=0)
@@ -135,12 +126,6 @@ class ImportVOX(bpy.types.Operator, ImportHelper):
         layout = self.layout
         layout.prop(self, "voxel_spacing")
         layout.prop(self, "voxel_size")
-        layout.prop(self, "load_frame")
-        layout.prop(self, "use_bounds")
-        if self.use_bounds:
-            layout.prop(self, "start_voxel")
-            layout.prop(self, "end_voxel")
-        layout.prop(self, "use_palette")
         layout.prop(self, "gamma_correct")
         if self.gamma_correct:
             layout.prop(self, "gamma_value")
