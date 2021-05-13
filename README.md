@@ -30,18 +30,14 @@ With the add-on installed and enabled, the importer can be accessed from `File >
 
 This add-on offers several import options, seen on the file select menu of the import.
 
-![Import Options](https://i.imgur.com/Syyxs8E.png)
+![Import options](https://user-images.githubusercontent.com/1133607/118181589-37aa2d80-b438-11eb-90b2-ef1634d19277.png)
 
 - *Voxel Spacing*: controls distance center to center of neighbouring voxels.
 - *Voxel Size*: how large each voxel should be, in Blender Units.
-- *Animation frame to load*: for `.vox` files that contain animation frames, only 1 frame may be imported at a time, this option selects that value. If a value is given that exceeds the final frame, the final frame is used instead.
-- *Use Voxel Bounds*: import only a sub-set of the model, potentially useful for loading larger models.
-  - *Start Voxel* / *End Voxel*: define which voxels to import.
-- *Use Palette Colors*: should the colors present in the `.vox` file be imported as materials?
 - *Gamma Correct Colors*: in order to reproduce colors in the render, colors in the palette are gamma corrected. Disabling this will likely cause discoloration compared to the model when viewed in MagicaVoxel.
   - *Gamma Correction Value*: value of color correction, default of 2.2, see [here](https://docs.blender.org/manual/en/latest/render/color_management.html) for more information.
 - *Use Shadeless Materials*: makes materials 'shadeless' by changing the material type to emissive.
-- *Join Voxels*: currently naïve option to perform a join operation on the voxels after import. This will make manipulating the model much more performant, though is not suitable in all cases, i.e. physics simulations.
+- *Join Voxels*: Joins all voxel together into on model. If this is not selected, the meebit will consist of a few thousand individual cubes (perfect for physics simulations)
 
 ## Questions and Concerns
 
