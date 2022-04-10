@@ -176,8 +176,8 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
         palette = {}
         current_frame = 0
 
-        # assert is VOX 150 file
-        assert (struct.unpack('<4ci', vox.read(8)) == (b'V', b'O', b'X', b' ', 150))
+        # assert is VOX 0xC8 File: this file is partially supported but the first mesh is correctly loaded
+        assert (struct.unpack('<4ci', vox.read(8)) == (b'V', b'O', b'X', b' ', 0xc8))
 
         # MAIN chunk
         assert (struct.unpack('<4c', vox.read(4)) == (b'M', b'A', b'I', b'N'))
