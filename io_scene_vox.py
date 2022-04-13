@@ -198,11 +198,14 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
                 # number of models
                 num_models, = struct.unpack('<i', vox.read(4))
                 # clamp load_frame to total number of frames
+                # print("num_models".str(struct.unpack('<i', vox.read(4))))
                 load_frame = min(load_frame, num_models)
             elif name == 'SIZE':
                 # model size
                 # x, y, z = struct.unpack('<3i', vox.read(12))
                 vox.read(12)
+            elif name == 'nTRN':
+                break
             elif name == 'XYZI':
                 # voxel data
                 if current_frame == load_frame:
