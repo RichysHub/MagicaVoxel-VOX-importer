@@ -177,7 +177,7 @@ def import_vox(path, *, voxel_spacing=1, voxel_size=1, load_frame=0,
         current_frame = 0
 
         # assert is VOX file
-        assert (struct.unpack('<4ci', vox.read(4)) == (b'V', b'O', b'X', b' '))
+        assert (struct.unpack('<4c', vox.read(4)) == (b'V', b'O', b'X', b' '))
 
         # separte the VOX version read; unused here, but available for inspection
         version = struct.unpack('<i', vox.read(4))
